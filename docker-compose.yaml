@@ -1,0 +1,19 @@
+services:
+  mosquitto:
+    container_name: mosquitto
+    image: eclipse-mosquitto
+    restart: always
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: "256M"
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_config:/mosquitto/config
+      - mosquitto_log:/mosquitto/log
+    security_opt:
+      - no-new-privileges:true
