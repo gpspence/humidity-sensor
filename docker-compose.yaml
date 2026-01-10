@@ -10,9 +10,9 @@ services:
           memory: "256M"
     ports:
       - "1883:1883"
-      - "9001:9001"
     volumes:
-      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./mosquitto/config/pwfile:/mosquitto/config/pwfile
       - ./mosquitto/mosquitto_data:/mosquitto/data
       - ./mosquitto/mosquitto_log:/mosquitto/log
     security_opt:
