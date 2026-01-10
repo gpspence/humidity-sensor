@@ -1,19 +1,47 @@
+secrets:
+  sensors_password:
+    file: ./secrets/sensors_password.txt
+
 services:
   mosquitto:
     container_name: mosquitto
-    image: eclipse-mosquitto
+    image: eclipse-mosquitto:latest
     restart: always
-    deploy:
-      replicas: 1
-      resources:
-        limits:
-          memory: "256M"
+    mem_limit: "256M"
     ports:
       - "1883:1883"
     volumes:
       - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
-      - ./mosquitto/config/pwfile:/mosquitto/config/pwfile
+      - ./mosquitto/secrets/pwfile:/mosquitto/config/pwfile:ro
       - ./mosquitto/mosquitto_data:/mosquitto/data
       - ./mosquitto/mosquitto_log:/mosquitto/log
     security_opt:
       - no-new-privileges:true
+  timescaledb:
+    container_name: timescaledb
+    image: timescale/timescaledb:latest-pg17
+    restart: always
+    environment:
+      POSTGRES_DB: sensors
+      POSTGRES_USER: sensors_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/sensors_password
+    secrets:
+      - sensors_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./timescaledb/data:/var/lib/postgresql/data
+      - ./timescaledb/init:/docker-entrypoint-initdb.d
+    security_opt:
+      - no-new-privileges:true
+  # grafana:
+  #   container_name: grafana
+  #   image: grafana/grafana:latest
+  #   restart: always
+  #   ports:
+  #     - "3000:3000"
+  #   volumes:
+  #     - ./grafana/data:/var/lib/grafana
+  #     - ./grafana/provisioning:/etc/grafana/provisioning
+  #   security_opt:
+  #     - no-new-privileges:true
