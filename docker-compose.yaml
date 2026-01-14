@@ -1,6 +1,8 @@
 secrets:
-  sensors_password:
-    file: ./secrets/sensors_password.txt
+  db_password_telegraf:
+    file: ./secrets/db_password_telegraf.txt
+  mqtt_password_telegraf:
+    file: ./secrets/mqtt_password_telegraf.txt
 
 services:
   mosquitto:
@@ -12,28 +14,43 @@ services:
       - "1883:1883"
     volumes:
       - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
-      - ./mosquitto/secrets/pwfile:/mosquitto/config/pwfile:ro
+      - ./mosquitto/config/pwfile:/mosquitto/config/pwfile:ro
       - ./mosquitto/mosquitto_data:/mosquitto/data
       - ./mosquitto/mosquitto_log:/mosquitto/log
     security_opt:
       - no-new-privileges:true
+  
+  telegraf:
+    container_name: telegraf
+    image: telegraf:latest
+    restart: always
+    depends_on:
+      - mosquitto
+      - timescaledb
+    secrets:
+      - db_password_telegraf
+      - mqtt_password_telegraf
+    volumes:
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    security_opt:
+      - no-new-privileges:true
+
   timescaledb:
     container_name: timescaledb
     image: timescale/timescaledb:latest-pg17
     restart: always
     environment:
-      POSTGRES_DB: sensors
-      POSTGRES_USER: sensors_user
-      POSTGRES_PASSWORD_FILE: /run/secrets/sensors_password
+      POSTGRES_DB: sensors_db
+      POSTGRES_USER: telegraf
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password_telegraf
     secrets:
-      - sensors_password
-    ports:
-      - "5432:5432"
+      - db_password_telegraf
     volumes:
       - ./timescaledb/data:/var/lib/postgresql/data
       - ./timescaledb/init:/docker-entrypoint-initdb.d
     security_opt:
       - no-new-privileges:true
+
   grafana:
     container_name: grafana
     image: grafana/grafana:latest
