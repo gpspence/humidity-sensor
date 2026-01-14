@@ -1,1 +1,4 @@
 secrets/
+mosquitto/mosquitto_data
+mosquitto/config/pwfile
+grafana/data
