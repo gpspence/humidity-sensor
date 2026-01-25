@@ -6,15 +6,14 @@ The idea of this project was to create a streaming pipeline for temperature and 
 
 At a high level:
 * Python script on Raspberry Pi collects reading from BME280 sensor at specified intervals, and publishes to an Mosquitto MQTT broker topic (default `sensors/indoor`) using a `pi_sensor` MQTT user
-  * The Mosquitto MQTT broker is hosted locally on an old laptop within a Docker container on the default bridge network
+* The Mosquitto MQTT broker is hosted locally on an old laptop within a Docker container on the default bridge network
 * Telegraf consumes the message using the `telegraf` MQTT user, adds tags and inserts the data into a TimescaleDB database
-  * The TimescaleDB database is also hosted by the laptop within a Docker container
+* The TimescaleDB database is also hosted by the laptop within a Docker container
 * Finally, Grafana connects to the TimescaleDB database using a Grafana plugin, and pulls the data into a dashboard
-  * Grafana is hosted using Docker on the laptop
+* Grafana is hosted using Docker on the laptop
 
-## Dashboard 🖥️
+## Dashboard Example🖥️
 <img width="2214" height="1328" alt="image" src="https://github.com/user-attachments/assets/b2244e91-a5b4-4399-86b3-3a70df0871af" />
-A Grafana dashboard is locally accessible with key metrics.
 
 ## Configuration ⚙️
 * Clone the repo onto the host system and Raspberry Pi
