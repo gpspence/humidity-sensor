@@ -4,7 +4,6 @@ The idea of this project was to create a streaming pipeline for temperature and 
 ## Pipeline 🔩
 <img width="576" height="191" alt="pipeline_schematic drawio" src="https://github.com/user-attachments/assets/1ace2d61-1e2f-4c5d-b250-02559c810812" />
 
-At a high level:
 * Python script on Raspberry Pi collects reading from BME280 sensor at specified intervals, and publishes to an Mosquitto MQTT broker topic (default `sensors/indoor`) using a `pi_sensor` MQTT user
 * The Mosquitto MQTT broker is hosted locally on an old laptop within a Docker container on the default bridge network
 * Telegraf consumes the message using the `telegraf` MQTT user, adds tags and inserts the data into a TimescaleDB database
