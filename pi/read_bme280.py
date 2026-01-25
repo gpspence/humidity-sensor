@@ -12,10 +12,9 @@ import paho.mqtt.publish as publish
 
 
 # --- Setup Logging ---
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+logger.propagate = False  # avoid duplicate logs
 
 
 # --- Types ---
@@ -31,6 +30,31 @@ class SensorReading(TypedDict):
 
 
 # --- Declare Functions ---
+def configure_logging(debug: bool, log_file: str = "warnings.log") -> None:
+    """
+    Configure logging so that:
+    - warnings and above always go to a file
+    - stdout logging only happens when debug=True
+    """
+    # Clear any existing handlers (if configure_logging is called more than once)
+    logger.handlers.clear()
+
+    fmt = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+
+    # File handler: WARNING and above only
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setLevel(logging.WARNING)
+    file_handler.setFormatter(fmt)
+    logger.addHandler(file_handler)
+
+    # Stdout handler: only when debug=True
+    if debug:
+        stream_handler = logging.StreamHandler()
+        stream_handler.setLevel(logging.INFO)
+        stream_handler.setFormatter(fmt)
+        logger.addHandler(stream_handler)
+
+
 def print_reading(bme280: BME280.Adafruit_BME280_I2C) -> None:
     """Print current BME280 sensor readings for debugging."""
     logger.info("Temperature: %0.1f C", bme280.temperature)
@@ -97,6 +121,8 @@ def publish_readings(
     freq: int = 1,
     topic: str = "sensors/indoor",
     max_iterations: Optional[int] = None,
+    debug: bool = False,
+    log_file: str = "warnings.log",
 ) -> None:
     """
     Continuously publish MQTT messages with sensor readings.
@@ -108,10 +134,14 @@ def publish_readings(
         freq: Number of messages to publish per minute (1-60)
         topic: MQTT topic to publish to
         max_iterations: Maximum number of readings to publish (None for infinite)
+        debug: log to stdout
+        log_file: filename for logger warnings
 
     Raises:
         ValueError: If freq is invalid
     """
+    configure_logging(debug=debug, log_file=log_file)
+
     if freq < 1 or freq > 60:
         raise ValueError("Frequency must be between 1 and 60 messages per minute")
 
@@ -123,7 +153,8 @@ def publish_readings(
     try:
         while max_iterations is None or iteration < max_iterations:
             try:
-                print_reading(bme280)
+                if debug:
+                    print_reading(bme280)
                 publish_single_reading(bme280, auth, hostname, port, topic)
             except RuntimeError as e:
                 logger.error("Error in iteration %d: %s", iteration, e)
@@ -138,31 +169,33 @@ def publish_readings(
 def load_auth_from_env() -> AuthParameter:
     """
     Load MQTT authentication from environment variables.
-    
+
     Returns:
         Authentication parameters dictionary
-        
+
     Raises:
         ValueError: If required environment variables are missing
     """
     load_dotenv()
     mqtt_user = os.getenv("MQTT_USER")
     mqtt_password = os.getenv("MQTT_PASSWORD")
-    
+
     if not mqtt_user or not mqtt_password:
         raise ValueError(
             "MQTT authentication parameters not defined in '.env'. "
             "Both 'MQTT_USER' and 'MQTT_PASSWORD' must be defined."
         )
-    
+
     return {"username": mqtt_user, "password": mqtt_password}
+
+
 def init_sensor() -> BME280.Adafruit_BME280_I2C:
     """
     Initialize BME280 sensor.
-    
+
     Returns:
         Initialized BME280 sensor instance
-        
+
     Raises:
         RuntimeError: If sensor initialization fails
     """
@@ -182,29 +215,20 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Publish BME280 sensor readings to MQTT broker"
     )
+    parser.add_argument("--freq", type=int, default=1)
+    parser.add_argument("--hostname", type=str, default="localhost")
+    parser.add_argument("--port", type=int, default=1883)
+    parser.add_argument("--topic", type=str, default="sensors/indoor")
     parser.add_argument(
-        "--freq",
-        type=int,
-        default=1,
-        help="Number of messages to publish per minute (1-60, default: 1)"
+        "--debug",
+        action="store_true",
+        help="Enable stdout logging (INFO+) and extra sensor reading prints",
     )
     parser.add_argument(
-        "--hostname",
+        "--log-file",
         type=str,
-        default="localhost",
-        help="MQTT broker hostname (default: localhost)"
-    )
-    parser.add_argument(
-        "--port",
-        type=int,
-        default=1883,
-        help="MQTT broker port (default: 1883)"
-    )
-    parser.add_argument(
-        "--topic",
-        type=str,
-        default="sensors/indoor",
-        help="MQTT topic (default: sensors/indoor)"
+        default="warnings.log",
+        help="File path for WARNING+ logs (default: warnings.log)",
     )
     return parser.parse_args()
 
@@ -212,11 +236,11 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     """Main entry point."""
     args = parse_args()
-    
+
     try:
         auth_params = load_auth_from_env()
         bme280 = init_sensor()
-        
+
         publish_readings(
             bme280=bme280,
             hostname=args.hostname,
@@ -224,6 +248,8 @@ def main() -> None:
             auth=auth_params,
             port=args.port,
             topic=args.topic,
+            debug=args.debug,
+            log_file=args.log_file,
         )
     except (ValueError, RuntimeError) as e:
         logger.error("Failed to start: %s", e)
