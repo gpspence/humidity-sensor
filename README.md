@@ -8,6 +8,7 @@ Desired analytics insights included:
 
 ## Architecture 🔩
 <img width="576" height="191" alt="pipeline_schematic drawio" src="https://github.com/user-attachments/assets/1ace2d61-1e2f-4c5d-b250-02559c810812" />
+
 1. **Sensor publisher (Raspberry Pi)**: Python script reads BME280 every _N_ minutes (CLI arg, default 1 minute), publishes to MQTT topic (default `sensors/indoor`)
 2. **MQTT broker**: Mosquitto in Docker on an old laptop
 3. **Ingestion**: Telegraf subscribes, tags and writes to TimescaleDB
