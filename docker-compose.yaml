@@ -1,8 +1,8 @@
 secrets:
   db_password_telegraf:
-    file: ./secrets/db_password_telegraf.txt
+    file: ${SECRETS_DIR:-./secrets}/db_password_telegraf.txt
   mqtt_password_telegraf:
-    file: ./secrets/mqtt_password_telegraf.txt
+    file: ${SECRETS_DIR:-./secrets}/mqtt_password_telegraf.txt
 
 services:
   mosquitto:
@@ -13,10 +13,10 @@ services:
     ports:
       - "1883:1883"
     volumes:
-      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
-      - ./mosquitto/config/pwfile:/mosquitto/config/pwfile:ro
-      - ./mosquitto/mosquitto_data:/mosquitto/data
-      - ./mosquitto/mosquitto_log:/mosquitto/log
+      - ${CONFIG_DIR:-./mosquitto/config}/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ${CONFIG_DIR:-./mosquitto/config}/pwfile:/mosquitto/config/pwfile:ro
+      - ${DATA_DIR:-./mosquitto/mosquitto_data}:/mosquitto/data
+      - ${LOG_DIR:-./mosquitto/mosquitto_log}:/mosquitto/log
     security_opt:
       - no-new-privileges:true
   
@@ -31,8 +31,7 @@ services:
       - db_password_telegraf
       - mqtt_password_telegraf
     volumes:
-      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
-    security_opt:
+      - ${TELEGRAF_CONF:-./telegraf/telegraf.conf}:/etc/telegraf/telegraf.conf:ro
       - no-new-privileges:true
 
   timescaledb:
@@ -46,8 +45,8 @@ services:
     secrets:
       - db_password_telegraf
     volumes:
-      - ./timescaledb/data:/var/lib/postgresql/data
-      - ./timescaledb/init:/docker-entrypoint-initdb.d
+      - ${TS_DATA_DIR:-./timescaledb/data}:/var/lib/postgresql/data
+      - ${TS_INIT_DIR:-./timescaledb/init}:/docker-entrypoint-initdb.d
     security_opt:
       - no-new-privileges:true
 
@@ -59,7 +58,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./grafana/data:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ${GRAFANA_DATA_DIR:-./grafana/data}:/var/lib/grafana
+      - ${GRAFANA_PROV_DIR:-./grafana/provisioning}:/etc/grafana/provisioning
     security_opt:
       - no-new-privileges:true
