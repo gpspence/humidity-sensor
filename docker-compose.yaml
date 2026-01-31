@@ -7,7 +7,7 @@ secrets:
 services:
   mosquitto:
     container_name: mosquitto
-    image: eclipse-mosquitto:latest
+    image: eclipse-mosquitto:2
     restart: always
     mem_limit: "256M"
     ports:
@@ -22,7 +22,7 @@ services:
   
   telegraf:
     container_name: telegraf
-    image: telegraf:latest
+    image: telegraf:1.35
     restart: always
     depends_on:
       - mosquitto
@@ -37,7 +37,7 @@ services:
 
   timescaledb:
     container_name: timescaledb
-    image: timescale/timescaledb:latest-pg17
+    image: timescale/timescaledb:2.25.0-pg17
     restart: always
     environment:
       POSTGRES_DB: sensors_db
@@ -53,7 +53,7 @@ services:
 
   grafana:
     container_name: grafana
-    image: grafana/grafana:latest
+    image: grafana/grafana:12.3.2
     restart: always
     user: "472:472"
     ports:
