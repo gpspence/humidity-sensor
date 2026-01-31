@@ -1,5 +1,7 @@
 secrets/
+diagrams/
 mosquitto/mosquitto_data
 mosquitto/config/pwfile
 grafana/data
 __pycache__/
+*.drawio
