@@ -4,3 +4,5 @@ mosquitto/config/pwfile
 grafana/data
 __pycache__/
 *.drawio
+.terraform/
+.terraform.lock.hcl
