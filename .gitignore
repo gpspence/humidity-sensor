@@ -46,3 +46,4 @@ mosquitto/config/pwfile
 grafana/data
 __pycache__/
 *.drawio
+*.drawio.*
