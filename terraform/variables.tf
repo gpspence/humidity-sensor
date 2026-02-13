@@ -1,12 +1,12 @@
 # --- Globals ---
 variable "project_name" {
   description = "Project name for resource naming"
-  type = string
+  type        = string
 }
 
 variable "environment" {
   description = "Environment (dev/prod)"
-  type = string
+  type        = string
 }
 
 variable "aws_region" {
