@@ -51,25 +51,25 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.main.id
 }
 
-resource "aws_security_group" "ec2" {
-  name        = "${var.project_name}-${var.environment}-ec2-sg"
-  description = "EC2 security group - no inbound, all outbound"
+resource "aws_security_group" "asg" {
+  name        = "${var.project_name}-${var.environment}-asg-sg"
+  description = "ASG security group - no inbound, all outbound"
   vpc_id      = aws_vpc.main.id
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-ec2-sg"
+    Name = "${var.project_name}-${var.environment}-asg-sg"
   }
 }
 
-# Outbound-only SGs: required for Docker pulls, SSM, and Tailscale overlay networking
+# Outbound-only SG: required for Docker pulls, SSM, and Tailscale overlay networking
 resource "aws_vpc_security_group_egress_rule" "allow_all_traffic_ipv4" {
-  security_group_id = aws_security_group.ec2.id
+  security_group_id = aws_security_group.asg.id
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1" # semantically equivalent to all ports
 }
 
 resource "aws_vpc_security_group_egress_rule" "allow_all_traffic_ipv6" {
-  security_group_id = aws_security_group.ec2.id
+  security_group_id = aws_security_group.asg.id
   cidr_ipv6         = "::/0"
   ip_protocol       = "-1" # semantically equivalent to all ports
 }

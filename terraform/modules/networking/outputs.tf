@@ -9,6 +9,6 @@ output "subnet_id" {
 }
 
 output "security_group_id" {
-  description = "ID of the EC2 security group"
-  value = aws_security_group.ec2.id
+  description = "ID of the ASG security group"
+  value = aws_security_group.asg.id
 }
