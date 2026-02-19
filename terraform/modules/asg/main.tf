@@ -1,20 +1,41 @@
 # --- IAM Permissions/ Roles ---
 data "aws_iam_policy_document" "assume_role" {
-  statement {
-    effect = "Allow"
-
-    principals {
-      type        = "Service"
-      identifiers = ["ec2.amazonaws.com"]
-    }
-
-    actions = ["sts:AssumeRole"]
-  }
-}
+  statement}
 
 resource "aws_iam_role" "asg" {
-  name               = "asg"
-  assume_role_policy = data.aws_iam_policy_document.assume_role.json
+  name               = "asg-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = ["ec2.amazonaws.com"]
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "asg_inline" {
+  name = "asg-policy"
+  role = aws_iam_role.asg.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ssm:GetParameter",
+          "ssm:GetParameters",
+          "ssm:GetParametersByPath"
+        ]
+        Resource = var.secret_arns
+      }
+    ]
+  })
 }
 
 resource "aws_iam_role_policy_attachment" "ssm" {
@@ -22,44 +43,29 @@ resource "aws_iam_role_policy_attachment" "ssm" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
-data "aws_iam_policy_document" "policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "ssm:GetParameter",
-      "ssm:GetParameters",
-      "ssm:GetParametersByPath"
-    ]
-    resources = var.secret_arns
-  }
-
-  statement {
-    effect = "Allow"
-    actions = [
-      "kms:Decrypt"
-    ]
-    resources = var.kms_key_arns
-  }
-}
-
-resource "aws_iam_policy" "asg" {
-  name = "asg-policy"
-  description = "Policy for ASG launch template"
-  policy = data.aws_iam_policy_document.policy.json
-}
-
-resource "aws_iam_role_policy_attachment" {
-  role = aws_iam_role.asg.name
-  policy_arn = aws_iam_policy.asg.arn
-}
-
 resource "aws_iam_instance_profile" "asg" {
   name = "asg"
   role = aws_iam_role.asg.name
+
+  depends_on = [
+    aws_iam_role_policy_attachment.ssm,
+    aws_iam_role_policy_attachment.asg_policy
+  ]
 }
 
 
 # --- Launch Template ---
+data "aws_ami" "ubuntu" {
+  most_recent = true
+
+  filter {
+    name = "name"
+    values = ["ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*"]
+  }
+
+  owners = ["099720109477"] # Canonical
+}
+
 resource "aws_launch_template" "main" {
   name = "main"
 
@@ -83,10 +89,10 @@ resource "aws_launch_template" "main" {
   ebs_optimized = true
 
   iam_instance_profile {
-    name = ""
+    name = "asg"
   }
 
-  image_id = "ami-test"
+  image_id = data.aws_ami.ubuntu.id
 
   instance_initiated_shutdown_behavior = "terminate"
 
