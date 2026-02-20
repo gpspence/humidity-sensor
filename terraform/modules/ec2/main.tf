@@ -15,6 +15,10 @@ resource "aws_iam_role" "ec2" {
   })
 }
 
+data "aws_kms_key" "ssm_default" {
+  key_id = "alias/aws/ssm"
+}
+
 resource "aws_iam_role_policy" "ec2_policy" {
   name = "ec2-policy"
   role = aws_iam_role.ec2.id
@@ -30,6 +34,13 @@ resource "aws_iam_role_policy" "ec2_policy" {
           "ssm:GetParametersByPath"
         ]
         Resource = var.secret_arns
+      },
+      {
+        Effect = "Allow",
+        Action = [
+          "kms:Decrypt"
+        ],
+        Resource = data.aws_kms_key.ssm_default.arn
       }
     ]
   })
@@ -77,7 +88,7 @@ resource "aws_instance" "main" {
     http_tokens   = "required"
   }
 
-  user_data = file("${path.module}/src/cloud-init.sh")
+  user_data_base64 = filebase64("${path.module}/src/cloud-init.sh")
 }
 
 resource "aws_ebs_volume" "main" {

@@ -1,3 +1,7 @@
+data "aws_kms_key" "ssm_default" {
+  key_id = "alias/aws/ssm"
+}
+
 resource "aws_ssm_parameter" "secrets" {
   for_each = var.secrets
 
@@ -12,3 +16,6 @@ resource "aws_ssm_parameter" "secrets" {
   }
 }
 
+locals {
+  secret_arns = [for s in aws_ssm_parameter.secrets : s.arn]
+}

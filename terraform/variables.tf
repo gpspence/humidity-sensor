@@ -50,7 +50,7 @@ variable "mqtt_telegraf_password" {
   sensitive   = true
 }
 
-# TimescaleDB Secrets - Telegraf
+# TimescaleDB Secrets
 variable "timescaledb_telegraf_username" {
   description = "Username for TimescaleDB Telegraf user"
   type        = string
@@ -64,7 +64,6 @@ variable "timescaledb_telegraf_password" {
   sensitive   = true
 }
 
-# TimescaleDB Secrets - Grafana
 variable "timescaledb_grafana_username" {
   description = "Username for TimescaleDB Grafana user"
   type        = string
@@ -97,4 +96,15 @@ variable "tailscale_auth_key" {
   description = "Tailscale ephemeral auth key for EC2 instance"
   type        = string
   sensitive   = true
+}
+
+# --- Network ---
+variable "vpc_cidr" {
+  description = "VPC CIDR block"
+  type        = string
+}
+
+variable "public_subnet_cidr" {
+  description = "VPC public subnet CIDR block"
+  type        = string
 }
