@@ -1,6 +1,6 @@
 # --- IAM Permissions/ Roles ---
 resource "aws_iam_role" "ec2" {
-  name               = "ec2-role"
+  name = "ec2-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -51,7 +51,7 @@ data "aws_ami" "ubuntu" {
   most_recent = true
 
   filter {
-    name = "name"
+    name   = "name"
     values = ["ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*"]
   }
 
@@ -64,11 +64,11 @@ resource "aws_instance" "main" {
 
   iam_instance_profile = aws_iam_instance_profile.ec2.name
 
-  subnet_id = var.subnet_id
+  subnet_id              = var.subnet_id
   vpc_security_group_ids = var.vpc_security_group_ids
 
   ebs_optimized = true
-  monitoring = true
+  monitoring    = true
 
   disable_api_termination = true
 
@@ -83,7 +83,7 @@ resource "aws_instance" "main" {
 resource "aws_ebs_volume" "main" {
   availability_zone = aws_instance.main.availability_zone
   size              = 20
-  type = "gp3"
+  type              = "gp3"
 }
 
 resource "aws_volume_attachment" "ebs_att" {

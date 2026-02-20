@@ -3,10 +3,10 @@
 # aws_security group
 
 resource "aws_vpc" "main" {
-  cidr_block       = var.vpc_cidr
-  instance_tenancy = "default"
+  cidr_block           = var.vpc_cidr
+  instance_tenancy     = "default"
   enable_dns_hostnames = true
-  enable_dns_support = true
+  enable_dns_support   = true
 
   tags = {
     Name = "${var.project_name}-${var.environment}-vpc"
@@ -14,9 +14,9 @@ resource "aws_vpc" "main" {
 }
 
 resource "aws_subnet" "main" {
-  vpc_id     = aws_vpc.main.id
-  cidr_block = var.public_subnet_cidr
-  availability_zone = var.availability_zone
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = var.public_subnet_cidr
+  availability_zone       = var.availability_zone
   map_public_ip_on_launch = true
 
   tags = {
@@ -47,7 +47,7 @@ resource "aws_route_table" "main" {
 }
 
 resource "aws_route_table_association" "public" {
-  subnet_id = aws_subnet.main.id
+  subnet_id      = aws_subnet.main.id
   route_table_id = aws_route_table.main.id
 }
 

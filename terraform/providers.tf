@@ -4,8 +4,8 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Environment     = "Production"
-      ManagedBy       = "Terraform"
+      Environment = "Production"
+      ManagedBy   = "Terraform"
     }
   }
 }

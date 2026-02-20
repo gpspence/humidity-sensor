@@ -1,17 +1,17 @@
 variable "project_name" {
   description = "Project name"
-  type = string
+  type        = string
 }
 
 variable "environment" {
   description = "Environment (dev/prod)"
-  type = string
+  type        = string
 }
 
 variable "secrets" {
   description = "Map of secrets to store in SSM Parameter Store"
   type = map(object({
-    value = string
+    value       = string
     description = string
   }))
 }
