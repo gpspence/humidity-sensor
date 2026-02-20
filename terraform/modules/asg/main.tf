@@ -67,13 +67,14 @@ data "aws_ami" "ubuntu" {
 }
 
 resource "aws_launch_template" "main" {
-  name = "main"
+  name = "${var.project_name}-main-launch-template"
 
   block_device_mappings {
     device_name = "/dev/sdf"
 
     ebs {
       volume_size = 20  # GB
+      volume_type = "gp3"
     }
   }
 
@@ -82,33 +83,22 @@ resource "aws_launch_template" "main" {
     cpu_credits = "standard"
   }
 
-  # Prevent accidental device stopping through the console
-  disable_api_stop        = true
+  # Prevent accidental device termination
   disable_api_termination = true
 
   ebs_optimized = true
 
   iam_instance_profile {
-    name = "asg"
+    arn = aws_iam_instance_profile.asg.arn
   }
 
   image_id = data.aws_ami.ubuntu.id
 
   instance_initiated_shutdown_behavior = "terminate"
 
-  instance_market_options {
-    market_type = "spot"
-  }
-
   instance_type = "t3.micro"
 
-  kernel_id = "test"
-
-  key_name = "test"
-
-  license_specification {
-    license_configuration_arn = "arn:aws:license-manager:eu-west-1:123456789012:license-configuration:lic-0123456789abcdef0123456789abcdef"
-  }
+  key_name = "main"
 
   metadata_options {
     http_endpoint               = "enabled"
@@ -121,84 +111,24 @@ resource "aws_launch_template" "main" {
     enabled = true
   }
 
-  network_performance_options {
-    bandwidth_weighting = "vpc-1"
-  }
+  vpc_security_group_ids = var.vpc_security_group_ids
 
-  network_interfaces {
-    associate_public_ip_address = true
-  }
-
-  placement {
-    availability_zone = "eu-west-2a"
-  }
-
-  ram_disk_id = "test"
-
-  vpc_security_group_ids = ["sg-12345678"]
-
-  tag_specifications {
-    resource_type = "instance"
-
-    tags = {
-      Name = "test"
-    }
-  }
-
-  user_data = filebase64("${path.module}/example.sh")
+  user_data = filebase64("${path.module}/src/cloud-init.sh")
 }
 
 
 # --- ASG ---
-resource "aws_placement_group" "main" {
-  name     = "main"
-  strategy = "cluster"
-}
-
 resource "aws_autoscaling_group" "main" {
-  name                      = "foobar3-terraform-test"
-  max_size                  = 5
-  min_size                  = 2
+  name                      = "${var.project_name}-asg"
+  max_size                  = 1
+  min_size                  = 1
+  desired_capacity          = 1
   health_check_grace_period = 300
-  health_check_type         = "ELB"
-  desired_capacity          = 4
-  force_delete              = true
-  placement_group           = aws_placement_group.test.id
-  launch_configuration      = aws_launch_configuration.foobar.name
-  vpc_zone_identifier       = [aws_subnet.example1.id, aws_subnet.example2.id]
+  health_check_type         = "EC2"
+  vpc_zone_identifier       = var.subnet_ids
 
-  instance_maintenance_policy {
-    min_healthy_percentage = 90
-    max_healthy_percentage = 120
-  }
-
-  initial_lifecycle_hook {
-    name                 = "foobar"
-    default_result       = "CONTINUE"
-    heartbeat_timeout    = 2000
-    lifecycle_transition = "autoscaling:EC2_INSTANCE_LAUNCHING"
-
-    notification_metadata = jsonencode({
-      foo = "bar"
-    })
-
-    notification_target_arn = "arn:aws:sqs:us-east-1:444455556666:queue1*"
-    role_arn                = "arn:aws:iam::123456789012:role/S3Access"
-  }
-
-  tag {
-    key                 = "foo"
-    value               = "bar"
-    propagate_at_launch = true
-  }
-
-  timeouts {
-    delete = "15m"
-  }
-
-  tag {
-    key                 = "lorem"
-    value               = "ipsum"
-    propagate_at_launch = false
+  launch_template {
+    id = aws_launch_template.main.id
+    version = "$Latest"
   }
 }

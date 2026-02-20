@@ -59,6 +59,10 @@ resource "aws_security_group" "asg" {
   tags = {
     Name = "${var.project_name}-${var.environment}-asg-sg"
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 # Outbound-only SG: required for Docker pulls, SSM, and Tailscale overlay networking
