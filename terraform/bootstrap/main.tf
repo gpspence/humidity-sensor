@@ -21,9 +21,9 @@ resource "aws_s3_bucket" "terraform_state" {
   bucket = var.state_bucket_name
 
   tags = {
-    Name = "Terraform State Bucket"
+    Name        = "Terraform State Bucket"
     Environment = "Infrastructure"
-    ManagedBy = "Terraform"
+    ManagedBy   = "Terraform"
   }
 }
 
@@ -41,7 +41,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "terraform_state" 
 
   rule {
     apply_server_side_encryption_by_default {
-      sse_algorithm     = "AES256"
+      sse_algorithm = "AES256"
     }
   }
 }
@@ -58,9 +58,9 @@ resource "aws_s3_bucket_public_access_block" "example" {
 
 # DynamoDB table for state locking, to prevent concurrent modifications
 resource "aws_dynamodb_table" "terraform_locks" {
-  name = var.dynamodb_table_name
-  billing_mode = "PAY_PER_REQUEST"  # on-demand mode (low read/write count)
-  hash_key = "LockId"
+  name         = var.dynamodb_table_name
+  billing_mode = "PAY_PER_REQUEST" # on-demand mode (low read/write count)
+  hash_key     = "LockId"
 
   attribute {
     name = "LockId"
@@ -68,8 +68,8 @@ resource "aws_dynamodb_table" "terraform_locks" {
   }
 
   tags = {
-    Name = "Terraform State Locks"
+    Name        = "Terraform State Locks"
     Environment = "Infrastructure"
-    ManagedBy = "Terraform"
+    ManagedBy   = "Terraform"
   }
 }
