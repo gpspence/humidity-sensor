@@ -6,6 +6,7 @@ provider "aws" {
     tags = {
       Environment = "Production"
       ManagedBy   = "Terraform"
+      Project     = "humidity-sensor"
     }
   }
 }

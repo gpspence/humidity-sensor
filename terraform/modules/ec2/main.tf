@@ -81,8 +81,6 @@ resource "aws_instance" "main" {
   ebs_optimized = true
   monitoring    = true
 
-  disable_api_termination = true
-
   metadata_options {
     http_endpoint = "enabled"
     http_tokens   = "required"
