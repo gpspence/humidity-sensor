@@ -22,3 +22,30 @@ module "ec2" {
   vpc_security_group_ids = [module.network.ec2_security_group_id]
   subnet_id              = module.network.subnet_id
 }
+
+module "s3_bucket" {
+  source = "terraform-aws-modules/s3-bucket/aws"
+
+  bucket = "humidity-sensor-config"
+  acl    = "private"  # TODO - grant access to EC2
+
+  control_object_ownership = true
+  object_ownership         = "ObjectWriter"
+
+  versioning = {
+    enabled = true
+  }
+}
+
+module "s3_objects" {
+  for_each = fileset(local.upload_directory, "**/*.*")
+  source = "terraform-aws-modules/s3-bucket/aws//modules/object"
+
+  bucket = module.s3_bucket.s3_bucket_id
+  key = "${each.key}"
+  file_source = "${path.cwd}/config/${each.key}"
+
+  tags = {
+    Sensitive = false
+  }
+}

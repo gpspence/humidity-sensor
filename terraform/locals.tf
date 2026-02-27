@@ -1,5 +1,5 @@
 locals {
-  # SSM Parameter Store - Secrets
+  # --- SSM Parameter Store - Secrets ---
   secrets = {
     "mqtt/sensor/username" = {
       value       = var.mqtt_sensor_username
@@ -46,4 +46,7 @@ locals {
       description = "Tailscale ephemeral auth key"
     }
   }
+
+  # --- S3 Objects ---
+  upload_directory = "${path.cwd}/config/"
 }
