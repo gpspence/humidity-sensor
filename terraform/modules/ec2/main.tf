@@ -86,7 +86,7 @@ resource "aws_instance" "main" {
     http_tokens   = "required"
   }
 
-  user_data_base64 = filebase64("${path.module}/src/cloud-init.sh")
+  user_data_base64 = filebase64("${path.module}/src/user-data.sh")
 }
 
 resource "aws_ebs_volume" "main" {

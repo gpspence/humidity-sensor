@@ -6,5 +6,13 @@ terraform {
     }
   }
 
+  backend "s3" {
+    bucket         	   = "terraform-bucket-6857"
+    key              	 = "main/terraform.tfstate"
+    region         	   = "eu-west-2"
+    encrypt        	   = true
+    dynamodb_table     = "terraform-state-locks"
+  }
+
   required_version = ">=1.14"
 }

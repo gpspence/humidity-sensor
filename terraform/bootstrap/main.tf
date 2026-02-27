@@ -60,10 +60,10 @@ resource "aws_s3_bucket_public_access_block" "example" {
 resource "aws_dynamodb_table" "terraform_locks" {
   name         = var.dynamodb_table_name
   billing_mode = "PAY_PER_REQUEST" # on-demand mode (low read/write count)
-  hash_key     = "LockId"
+  hash_key     = "LockID"
 
   attribute {
-    name = "LockId"
+    name = "LockID"
     type = "S"
   }
 
