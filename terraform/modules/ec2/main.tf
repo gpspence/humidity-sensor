@@ -41,6 +41,23 @@ resource "aws_iam_role_policy" "ec2_policy" {
           "kms:Decrypt"
         ],
         Resource = data.aws_kms_key.ssm_default.arn
+      },
+      {
+        Effect = "Allow",
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogStreams"
+        ],
+        Resource = "*"
+      },
+      {
+        Effect = "Allow",
+        Action = [
+          "s3:GetObject"
+        ],
+        Resource = "${var.s3_config_bucket_arn}/*"
       }
     ]
   })
@@ -58,19 +75,23 @@ resource "aws_iam_instance_profile" "ec2" {
 
 
 # --- EC2 ---
-data "aws_ami" "ubuntu" {
+data "aws_ami" "amazon_linux" {
   most_recent = true
+  owners      = ["amazon"]
 
   filter {
     name   = "name"
-    values = ["ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*"]
+    values = ["amzn2-ami-hvm*"]
   }
 
-  owners = ["099720109477"] # Canonical
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
 }
 
 resource "aws_instance" "main" {
-  ami           = data.aws_ami.ubuntu.id
+  ami           = data.aws_ami.amazon_linux.id
   instance_type = "t3.micro"
 
   iam_instance_profile = aws_iam_instance_profile.ec2.name
@@ -86,7 +107,16 @@ resource "aws_instance" "main" {
     http_tokens   = "required"
   }
 
-  user_data_base64 = filebase64("${path.module}/src/user-data.sh")
+  user_data_base64 = base64encode(templatefile("${path.module}/src/user-data.sh", {
+    REGION = var.aws_region
+    S3_CONFIG_BUCKET_NAME = var.s3_config_bucket_name
+  }))
+
+  # Ensure these are created before the cloud init runs to avoid conflicts
+  depends_on = [
+    aws_cloudwatch_log_group.user_data,
+    aws_cloudwatch_log_group.syslog
+  ]
 }
 
 resource "aws_ebs_volume" "main" {
@@ -99,4 +129,14 @@ resource "aws_volume_attachment" "ebs_att" {
   device_name = "/dev/sdf"
   volume_id   = aws_ebs_volume.main.id
   instance_id = aws_instance.main.id
+}
+
+resource "aws_cloudwatch_log_group" "user_data" {
+  name              = "/ec2/user-data"
+  retention_in_days = 30
+}
+
+resource "aws_cloudwatch_log_group" "syslog" {
+  name              = "/ec2/syslog"
+  retention_in_days = 90
 }

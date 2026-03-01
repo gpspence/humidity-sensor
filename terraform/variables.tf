@@ -108,3 +108,10 @@ variable "public_subnet_cidr" {
   description = "VPC public subnet CIDR block"
   type        = string
 }
+
+# --- S3 Config Bucket ---
+variable "s3_config_bucket_name" {
+  description = "Name of the S3 bucket holding config files"
+  type        = string
+  default     = "humidity-sensor-config"
+}

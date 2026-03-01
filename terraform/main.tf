@@ -21,12 +21,14 @@ module "ec2" {
   secret_arns            = module.ssm.secret_arns
   vpc_security_group_ids = [module.network.ec2_security_group_id]
   subnet_id              = module.network.subnet_id
+  s3_config_bucket_arn   = module.s3_bucket.s3_bucket_arn
+  s3_config_bucket_name  = module.s3_bucket.s3_bucket_id
 }
 
 module "s3_bucket" {
   source = "terraform-aws-modules/s3-bucket/aws"
 
-  bucket = "humidity-sensor-config"
+  bucket = var.s3_config_bucket_name
   acl    = "private"  # TODO - grant access to EC2
 
   control_object_ownership = true

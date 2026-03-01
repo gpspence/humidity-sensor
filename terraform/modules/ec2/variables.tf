@@ -8,6 +8,12 @@ variable "environment" {
   type        = string
 }
 
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+  default     = "eu-west-2"
+}
+
 variable "secret_arns" {
   description = "ARNs of SSM Parameter secrets which EC2 can access"
   type        = list(string)
@@ -21,4 +27,14 @@ variable "vpc_security_group_ids" {
 variable "subnet_id" {
   description = "Subnet to launch the instance in"
   type        = string
+}
+
+variable "s3_config_bucket_arn" {
+  description = "ARN of bucket containing config files to be used by the instance"
+  type = string
+}
+
+variable "s3_config_bucket_name" {
+  description = "Name of bucket containing config files to be used by the instance"
+  type = string
 }
